@@ -119,7 +119,8 @@ class DownBlock(nn.Module):
         self.res_block = ResidualBlock(
             in_channels=in_channels,
             out_channels=out_channels,
-            time_channels=time_channels
+            time_channels=time_channels,
+            
         )
         self.attn_block = (
             AttentionBlock(
