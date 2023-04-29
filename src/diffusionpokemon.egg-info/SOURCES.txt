@@ -1,7 +1,0 @@
-pyproject.toml
-src/__init__.py
-src/diffusion_autoencoder_blocks.py
-src/diffusionpokemon.egg-info/PKG-INFO
-src/diffusionpokemon.egg-info/SOURCES.txt
-src/diffusionpokemon.egg-info/dependency_links.txt
-src/diffusionpokemon.egg-info/top_level.txt
