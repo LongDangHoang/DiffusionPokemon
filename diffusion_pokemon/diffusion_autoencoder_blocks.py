@@ -121,7 +121,7 @@ class DownBlock(nn.Module):
             in_channels=in_channels,
             out_channels=out_channels,
             time_channels=time_channels,
-            res_block_dropout=res_block_dropout
+            dropout=res_block_dropout
         )
         self.attn_block = (
             AttentionBlock(
@@ -154,7 +154,7 @@ class UpBlock(nn.Module):
             in_channels=(in_channels * 2 if is_unet else in_channels),
             out_channels=out_channels,
             time_channels=time_channels,
-            res_block_dropout=res_block_dropout
+            dropout=res_block_dropout
         )
         self.attn_block = (
             AttentionBlock(
