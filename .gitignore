@@ -1,5 +1,5 @@
 .devcontainer
 
 __pycache__
-.egg
-.egg-info
+*.egg
+*.egg-info

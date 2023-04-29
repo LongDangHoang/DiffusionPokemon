@@ -2,7 +2,7 @@
 FROM pytorch/pytorch:latest
 
 RUN apt update
-RUN apt install git -y
+RUN apt install vim git -y
 
 # Keep container running for bash shell
 ENTRYPOINT ["/bin/bash", "-c", "echo Welcome"]
