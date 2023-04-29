@@ -112,7 +112,8 @@ class DownBlock(nn.Module):
         in_channels: int,
         out_channels: int, 
         time_channels: Optional[int]=None, 
-        use_attention: bool=True
+        use_attention: bool=True,
+        res_block_dropout: float=0.1,
     ):
         super().__init__()
         
@@ -120,7 +121,7 @@ class DownBlock(nn.Module):
             in_channels=in_channels,
             out_channels=out_channels,
             time_channels=time_channels,
-            
+            res_block_dropout=res_block_dropout
         )
         self.attn_block = (
             AttentionBlock(
@@ -144,14 +145,16 @@ class UpBlock(nn.Module):
         out_channels: int, 
         time_channels: Optional[int]=None, 
         use_attention: bool=True,
-        is_unet: bool=True
+        is_unet: bool=True,
+        res_block_dropout: float=0.1,
     ):
         super().__init__()
         
         self.res_block = ResidualBlock(
             in_channels=(in_channels * 2 if is_unet else in_channels),
             out_channels=out_channels,
-            time_channels=time_channels
+            time_channels=time_channels,
+            res_block_dropout=res_block_dropout
         )
         self.attn_block = (
             AttentionBlock(
