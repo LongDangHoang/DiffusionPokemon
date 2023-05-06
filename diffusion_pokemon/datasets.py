@@ -55,7 +55,7 @@ class BaseDataset:
         )
 
     def visualise(self):
-        img = next(iter(self.dataset))
+        img, _ = next(iter(self.dataset))
         plt.imshow(self.to_pil(img))
         plt.show()
 
