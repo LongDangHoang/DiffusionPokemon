@@ -13,7 +13,7 @@ class BaseDataset:
     def __init__(self):
         # basic transforms that probably won't need to be dynamic
         self.init_transform = transforms.Compose([
-            transforms.Resize(64), # to fit model
+            transforms.Resize((64, 64)), # to fit model
             transforms.ToTensor(), 
             transforms.RandomHorizontalFlip(p=0.5) # generative model should not care about left/right
         ])
