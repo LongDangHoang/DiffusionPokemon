@@ -2,7 +2,5 @@
 name = "diffusionpokemon"
 version = "0.0.1"
 
-[tool.poetry]
-packages = [
-    {"include" = "diffusionpokemon"},
-]
+[tool.setuptools]
+packages = ["datasets", "models"]
