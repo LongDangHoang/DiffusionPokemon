@@ -1,7 +1,7 @@
 import torch
 
 from torch import nn
-from diffusionpokemon.models.diffusion_autoencoder_blocks import (
+from .diffusion_autoencoder_blocks import (
     AttentionBlock,
     Block,
     DownSample,
@@ -79,16 +79,17 @@ class DDPMUNet(nn.Module):
         x = self.image_proj_in(x)
         
         intermediates = [x]
-        for layer in enumerate(self.down):
+        for layer in self.down:
             if isinstance(layer, DownSample):
                 x = layer(x)
             else:
                 x = layer(x, t_embed)
             intermediates.append(x)
                 
-        x = self.middle(x, t_embed)
+        for layer in self.middle:
+            x = layer(x, t_embed)
             
-        for layer in enumerate(self.up[::-1]):
+        for layer in self.up:
             if isinstance(layer, UpSample):
                 x = layer(x)
             else:
