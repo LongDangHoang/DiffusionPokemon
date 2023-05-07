@@ -28,7 +28,7 @@ class DDPMUNet(nn.Module):
         time_channels = n_channels * 4
         self.image_proj_in = nn.Conv2d(3, n_channels, kernel_size=(3, 3), padding=(1, 1))
         self.image_proj_out = nn.Conv2d(n_channels, 3, kernel_size=(3, 3), padding=(1, 1))
-        self.norm_proj_out = nn.GroupNorm(n_groups=32, n_channels=n_channels)
+        self.norm_proj_out = nn.GroupNorm(num_groups=32, num_channels=n_channels)
         self.time_embed = TimeEmbedding(time_channels)
         self.act = Swish()
         
