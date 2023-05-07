@@ -4,5 +4,5 @@ version = "0.0.1"
 
 [tool.poetry]
 packages = [
-    {"include" = "diffusion_pokemon"},
+    {"include" = "diffusionpokemon"},
 ]

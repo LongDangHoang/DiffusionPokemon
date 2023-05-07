@@ -1,3 +1,4 @@
+import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import torchvision.transforms as transforms
@@ -6,7 +7,13 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision.datasets import ImageFolder
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
+
+
+class Scaler:
+    """Scale [0 - 1] to [-1 - 1]"""
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+        return x * 2 - 1 
 
 
 class BaseDataset:
@@ -15,6 +22,7 @@ class BaseDataset:
         self.init_transform = transforms.Compose([
             transforms.Resize((64, 64)), # to fit model
             transforms.ToTensor(), 
+            Scaler(),
             transforms.RandomHorizontalFlip(p=0.5) # generative model should not care about left/right
         ])
         self.to_pil = transforms.ToPILImage()
@@ -68,6 +76,7 @@ class CartoonPretrainDataset(BaseDataset):
         self.init_transform = transforms.Compose([
             transforms.RandomCrop(64), # to fit model
             transforms.ToTensor(), 
+            Scaler(),
             transforms.RandomHorizontalFlip(p=0.5) # generative model should not care about left/right
         ])
 
