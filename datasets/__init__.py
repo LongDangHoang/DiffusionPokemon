@@ -1,9 +1,11 @@
 from .datasets import (
     BaseDataset,
-    CartoonPretrainDataset
+    CartoonPretrainDataset,
+    Scaler,
 )
 
 __all__ = [
     BaseDataset,
-    CartoonPretrainDataset
+    CartoonPretrainDataset,
+    Scaler,
 ]
