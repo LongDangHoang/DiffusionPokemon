@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 
 class Scaler:
-    """Scale [0 - 1] to [-1 - 1]"""
+    """Scale [0, 1] to [-1, 1]"""
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return x * 2 - 1 
 
@@ -64,7 +64,7 @@ class BaseDataset:
 
     def visualise(self):
         img, _ = next(iter(self.dataset))
-        plt.imshow(self.to_pil(img))
+        plt.imshow(self.to_pil((img + 1)/2))
         plt.show()
 
 
