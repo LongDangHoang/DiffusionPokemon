@@ -135,24 +135,34 @@ class Block(nn.Module):
     
     
 class UpSample(nn.Module):
-    def __init__(self, n_channels: int):
+    def __init__(self, n_channels: int, model_type: str="complex"):
         super().__init__()
-        self.conv = nn.ConvTranspose2d(
-            n_channels, n_channels,
-            (4, 4), (2, 2), (1, 1)
-        )
+
+        if model_type == "complex":
+            self.upsample = nn.ConvTranspose2d(
+                n_channels, n_channels,
+                (4, 4), (2, 2), (1, 1)
+            )
+        else:
+            self.upsample = nn.Upsample(scale_factor=2)
     
     def forward(self, x):
-        return self.conv(x)
+        return self.upsample(x)
     
 
 class DownSample(nn.Module):
-    def __init__(self, n_channels: int):
+    def __init__(self, n_channels: int, model_type: str="complex"):
         super().__init__()
-        self.conv = nn.Conv2d(
-            n_channels, n_channels,
-            (3, 3), (2, 2), (1, 1)
-        )
+
+        if model_type == "complex":
+            self.downsample = nn.Conv2d(
+                n_channels, n_channels,
+                (3, 3), (2, 2), (1, 1)
+            )
+        else:
+            self.downsample = nn.AvgPool2d(
+                kernel_size=2, stride=2, padding=0
+            )
     
     def forward(self, x):
-        return self.conv(x)
+        return self.downsample(x)

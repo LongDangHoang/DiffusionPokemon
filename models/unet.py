@@ -20,7 +20,8 @@ class DDPMUNet(nn.Module):
         n_blocks: int=2,
         channels_mult: List[int]=[1, 2, 2, 4], 
         is_attn: List[bool]=[False, False, True, False],
-        res_block_dropout: float=0.1
+        res_block_dropout: float=0.1,
+        model_type: str="complex",
     ):
         super().__init__()
         assert channels_mult[0] == 1
@@ -49,7 +50,7 @@ class DDPMUNet(nn.Module):
                 intermediary_channels.append(out_channels)
                 
             if i < len(channels_mult) - 1:
-                self.down.append(DownSample(out_channels))
+                self.down.append(DownSample(out_channels, model_type=model_type))
                 intermediary_channels.append(out_channels)
                 out_channels = n_channels * channels_mult[i + 1]
 
@@ -70,7 +71,7 @@ class DDPMUNet(nn.Module):
                 in_channels = out_channels
             
             if i > 0:
-                self.up.append(UpSample(out_channels))
+                self.up.append(UpSample(out_channels, model_type=model_type))
                 out_channels = n_channels * channels_mult[i - 1]
 
 
