@@ -88,7 +88,7 @@ class DiffusionModel(LightningModule):
         scheduler = OneCycleLR(
             optimizer,
             max_lr=lr,
-            epochs=self.optimizers_kwargs["num_epochs"] * 2,
+            epochs=self.optimizers_kwargs["num_epochs"],
             steps_per_epoch=self.optimizers_kwargs["steps_per_epoch"]
         )
         
