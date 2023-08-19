@@ -16,7 +16,8 @@ class DiffusionModel(LightningModule):
             n_steps: int=1_000,
             input_size: int=64,
             ddpm_unet_kwargs: dict={},
-            optimizers_kwargs: dict={}
+            optimizers_kwargs: dict={},
+            is_finetune: bool=False
         ):
         super().__init__()
     
@@ -24,6 +25,7 @@ class DiffusionModel(LightningModule):
         self.loss = nn.MSELoss()
         self.input_size = input_size 
         self.optimizers_kwargs = optimizers_kwargs
+        self.is_finetune = is_finetune
         
         self.register_buffer("beta", torch.linspace(1e-4, 0.02, self.n_steps, device=self.device))
         self.register_buffer("alpha", 1 - self.beta)
@@ -31,6 +33,15 @@ class DiffusionModel(LightningModule):
         
         self.eps_model = DDPMUNet(**ddpm_unet_kwargs)
         self.validation_loss_list = []
+
+        if (self.is_finetune):
+            for layer in [
+                self.eps_model.image_proj_in,
+                self.eps_model.time_embed,
+                self.eps_model.down
+            ]:
+                for param in layer.parameters():
+                    param.requires_grad = False
             
     def training_step(self, batch, batch_index):
         # x is x0 so (bs, 3, w, h)       
