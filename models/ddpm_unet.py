@@ -4,18 +4,18 @@ import torch.nn as nn
 from pytorch_lightning import LightningModule
 from torch.optim.lr_scheduler import OneCycleLR
 
-from .unet import DDPMUNet
+from .unet import UNet
 
 from tqdm import tqdm
 
 
-class DiffusionModel(LightningModule):
+class DDPMUNet(LightningModule):
     
     def __init__(
             self,
             n_steps: int=1_000,
             input_size: int=64,
-            ddpm_unet_kwargs: dict={},
+            unet_kwargs: dict={},
             optimizers_kwargs: dict={},
             is_finetune: bool=False
         ):
@@ -31,7 +31,7 @@ class DiffusionModel(LightningModule):
         self.register_buffer("alpha", 1 - self.beta)
         self.register_buffer("alpha_bar", torch.cumprod(self.alpha, dim=0))
         
-        self.eps_model = DDPMUNet(**ddpm_unet_kwargs)
+        self.eps_model = UNet(**unet_kwargs)
         self.validation_loss_list = []
 
         if (self.is_finetune):

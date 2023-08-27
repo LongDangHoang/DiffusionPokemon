@@ -1,4 +1,4 @@
-from .diffusion_autoencoder_blocks import (
+from .autoencoder_blocks import (
     AttentionBlock,
     Block,
     DownSample,
@@ -8,12 +8,12 @@ from .diffusion_autoencoder_blocks import (
     UpSample,
 )
 
-from .unet import DDPMUNet
+from .unet import UNet
 
 __all__ = [
     AttentionBlock,
     Block,
-    DDPMUNet,
+    UNet,
     DownSample,
     ResidualBlock,
     Swish,

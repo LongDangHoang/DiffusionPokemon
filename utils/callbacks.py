@@ -6,7 +6,7 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import Logger
 from pytorch_lightning.callbacks import Callback
 
-from .diffusion_model import DiffusionModel
+from ..models.ddpm_unet import DDPMUNet
 
 from pathlib import Path
 
@@ -20,7 +20,7 @@ class SampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DiffusionModel) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         if ((trainer.current_epoch + 1) % self.freq == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
             img_tensor = pl_module.sample()
             self.logger.log_image(
@@ -54,12 +54,12 @@ class S3SyncCallback(Callback):
         
         print("Initialised S3 sync. Saving to:", self.save_s3_key, "and loading from:", self.load_s3_key)
         
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DiffusionModel) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         self.epoch_counter_state += 1
         if self.epoch_counter_state % self.every_n_epochs == 0:
             self.upload_files_to_s3()
             
-    def on_train_end(self, trainer: Trainer, pl_module: DiffusionModel) -> None:
+    def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         self.upload_files_to_s3()
         
     def download_files_from_s3(self):

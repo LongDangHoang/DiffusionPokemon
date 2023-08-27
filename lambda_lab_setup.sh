@@ -1,5 +1,4 @@
-pip install .
-pip install kaggle pytorch-lightning python-dotenv wandb==0.15.0 protobuf==3.20.3
+pip install kaggle pytorch-lightning python-dotenv wandb==0.15.0 protobuf==3.20.3 boto3
 
 cd ..
 
