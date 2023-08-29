@@ -8,6 +8,8 @@ from .autoencoder_blocks import (
     UpSample,
 )
 
+from .ddpm_unet import DDPMUNet
+
 from .unet import UNet
 
 __all__ = [
@@ -15,6 +17,7 @@ __all__ = [
     Block,
     UNet,
     DownSample,
+    DDPMUNet,
     ResidualBlock,
     Swish,
     TimeEmbedding,
