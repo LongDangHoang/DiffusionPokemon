@@ -88,7 +88,7 @@ class DenoiseMidwaySampleCallback(Callback):
         
         self.logger.log_image(
             key="denoise_from_seed_img",
-            image=wandb.Image(fig)
+            images=[wandb.Image(fig).image]
         )
         
         plt.close()
