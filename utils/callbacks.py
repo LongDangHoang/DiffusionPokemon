@@ -1,5 +1,6 @@
 import boto3
 import wandb
+import torch
 
 from torchvision.transforms import ToPILImage
 
