@@ -9,17 +9,17 @@ from pytorch_lightning.loggers import Logger
 from pytorch_lightning.callbacks import Callback
 from matplotlib import pyplot as plt
 
-from ..models.ddpm_unet import DDPMUNet
+from models.ddpm_unet import DDPMUNet
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 
 class SampleCallback(Callback):
-    def __init__(self, logger: Logger, freq: int=10):
+    def __init__(self, logger: Logger, freq: int=10, mode: Optional[str]=None):
         super().__init__()
         self.freq = freq
-        self.to_pil = ToPILImage()
+        self.to_pil = ToPILImage(mode=mode)
 
         assert logger is not None
         self.logger = logger
@@ -37,10 +37,10 @@ class SampleCallback(Callback):
 
 
 class DenoiseMidwaySampleCallback(Callback):
-    def __init__(self, logger: Logger, seed_img_transformed: torch.Tensor, noise_at_ts: List[int], freq: int=10):
+    def __init__(self, logger: Logger, seed_img_transformed: torch.Tensor, noise_at_ts: List[int], freq: int=10, pil_mode: Optional[str]=None):
         super().__init__()
         self.freq = freq
-        self.to_pil = ToPILImage()
+        self.to_pil = ToPILImage(mode=pil_mode)
         self.seed_img_transformed = seed_img_transformed
         self.seed_img_shape = self.seed_img_transformed.shape
         
