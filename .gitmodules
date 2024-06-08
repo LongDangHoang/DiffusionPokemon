@@ -1,0 +1,3 @@
+[submodule "side_project_utils"]
+	path = side_project_utils
+	url = https://github.com/LongDangHoang/side_project_utils
