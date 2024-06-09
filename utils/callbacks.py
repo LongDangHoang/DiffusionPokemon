@@ -1,22 +1,21 @@
-import boto3
 import wandb
 import torch
+import torchvision.transforms as transforms
 
 from torchvision.transforms import ToPILImage
 
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import Logger
+from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import Callback
 from matplotlib import pyplot as plt
 
 from models.ddpm_unet import DDPMUNet
 
-from pathlib import Path
 from typing import List, Optional
 
 
 class SampleCallback(Callback):
-    def __init__(self, logger: Logger, freq: int=10, mode: Optional[str]=None):
+    def __init__(self, logger: WandbLogger, freq: int=10, mode: Optional[str]=None):
         super().__init__()
         self.freq = freq
         self.to_pil = ToPILImage(mode=mode)
@@ -37,7 +36,7 @@ class SampleCallback(Callback):
 
 
 class DenoiseMidwaySampleCallback(Callback):
-    def __init__(self, logger: Logger, seed_img_transformed: torch.Tensor, noise_at_ts: List[int], freq: int=10, pil_mode: Optional[str]=None):
+    def __init__(self, logger: WandbLogger, seed_img_transformed: torch.Tensor, noise_at_ts: List[int], freq: int=10, pil_mode: Optional[str]=None):
         super().__init__()
         self.freq = freq
         self.to_pil = ToPILImage(mode=pil_mode)
@@ -73,6 +72,7 @@ class DenoiseMidwaySampleCallback(Callback):
                 noised_imgs.append(self.to_pil(((noised_x[0]+1)/2).cpu()))
 
         fig, axs = plt.subplots(nrows=len(self.noise_at_ts), ncols=3, figsize=(6, 2*len(self.noise_at_ts)))
+        axs: List[List[plt.Axes]]
         
         for row, t in enumerate(self.noise_at_ts):
             axs[row][0].imshow(original_image)
@@ -92,3 +92,40 @@ class DenoiseMidwaySampleCallback(Callback):
         )
         
         plt.close()
+
+
+class SampleReconstruction(Callback):
+    def __init__(self, logger: WandbLogger, sample_input: torch.Tensor, every_n_epochs: int=100):
+        super().__init__()
+        self.sample_input = sample_input
+        assert len(self.sample_input.shape) == 4, "Please ensure to keep the batch dimension"
+
+        self.logger = logger
+        self.inv_normaliser = transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225], std=[1/0.229, 1/0.224, 1/0.225])
+        self.to_pil = transforms.ToPILImage()
+
+        self.every_n_epochs = every_n_epochs
+
+    def on_validation_epoch_end(self, trainer, pl_module):
+        if (trainer.current_epoch % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
+            with torch.no_grad():
+                x = self.sample_input.to(pl_module.device)
+                reconstructed, mu, log_var = pl_module(x)
+                reconstructed = reconstructed.cpu()
+
+            n_images = x.shape[0]
+            fig, axs = plt.subplots(nrows=n_images, ncols=2, figsize=(2, n_images))
+            for i in range(x.shape[0]):
+                orig_img = self.to_pil(self.inv_normaliser(self.sample_input[i]))
+                reconstructed_img = self.to_pil(self.inv_normaliser(reconstructed[i]))
+                axs[i, 0].imshow(orig_img)
+                axs[i, 1].imshow(reconstructed_img)
+            for ax in axs.ravel():
+                ax.axis(False)
+
+            self.logger.log_image(
+                key="sample_reconstruction",
+                images=[wandb.Image(fig).image]
+            )
+
+            plt.close()
