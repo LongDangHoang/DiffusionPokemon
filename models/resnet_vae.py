@@ -141,8 +141,8 @@ class ResnetVAE(LightningModule):
         self.log('train_step__loss', loss)
         self.log('train_step__kl_loss', kl_divergence)
         self.log('train_step__reconstruction_loss', reconstruction_loss)
-        if "kld__beta" in self.loss_kwargs:
-            self.log('train_step__kld_beta', self.loss_kwargs["kld_beta"])
+        if "beta" in self.loss_kwargs:
+            self.log('train_step__kld_beta', self.loss_kwargs["beta"])
             
         return loss
 
