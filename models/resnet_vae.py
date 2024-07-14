@@ -10,6 +10,7 @@ from pytorch_lightning import LightningModule
 
 from typing import Optional, Tuple
 
+
 class Block(nn.Module):
     def __init__(self, channel: int):
         super().__init__()
@@ -82,6 +83,7 @@ class ResnetVAE(LightningModule):
             reconstruction_resize_shape: Optional[int]=None, 
             decoder_kwargs: dict={},
             optimizer_kwargs: dict={},
+            loss_kwargs: dict={},
         ):
         super().__init__()
         self.encoder_latent_img_shape = self.ENCODER_LATENT_SPACE_LOOKUP[resnet_ver]
@@ -96,6 +98,7 @@ class ResnetVAE(LightningModule):
         self.mu = nn.Conv2d(in_channels=encoder_latent__channels, out_channels=latent_space_dim, kernel_size=1, stride=1, padding=0)
         self.log_var = nn.Conv2d(in_channels=encoder_latent__channels, out_channels=latent_space_dim, kernel_size=1, stride=1, padding=0)
         self.optimizer_kwargs = optimizer_kwargs
+        self.loss_kwargs = loss_kwargs
 
     def prepare_decoder(self, **kwargs):
         return Resnet50Decoder(in_latent_shape=self.decoder_latent_img_shape, **kwargs)
@@ -134,10 +137,13 @@ class ResnetVAE(LightningModule):
         x, _ = batch
         x_recon_resized = self.reconstruction_resize_shape(x)
         reconstructed, mu, log_var = self(x)
-        loss, reconstruction_loss, kl_divergence = self.vae_loss_function(reconstructed, x_recon_resized, mu, log_var)
+        loss, reconstruction_loss, kl_divergence = self.vae_loss_function(reconstructed, x_recon_resized, mu, log_var, **self.loss_kwargs)
         self.log('train_step__loss', loss)
         self.log('train_step__kl_loss', kl_divergence)
         self.log('train_step__reconstruction_loss', reconstruction_loss)
+        if "beta" in self.loss_kwargs:
+            self.log('train_step__kld_beta', self.loss_kwargs["beta"])
+            
         return loss
 
     def validation_step(self, batch, batch_idx):
