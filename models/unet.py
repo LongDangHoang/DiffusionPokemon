@@ -22,7 +22,7 @@ class UNet(nn.Module):
         channels_mult: List[int]=[1, 2, 2, 4], 
         is_attn: List[bool]=[False, False, True, False],
         res_block_dropout: float=0.1,
-        model_type: str="complex",
+        use_conv_for_res_change: bool=True,
     ):
         super().__init__()
         assert channels_mult[0] == 1
@@ -58,7 +58,7 @@ class UNet(nn.Module):
                 intermediary_channels.append(out_channels)
                 
             if i < len(channels_mult) - 1:
-                self.down.append(DownSample(out_channels, model_type=model_type))
+                self.down.append(DownSample(out_channels, use_conv=use_conv_for_res_change))
                 intermediary_channels.append(out_channels)
                 out_channels = n_channels * channels_mult[i + 1]
 
@@ -79,7 +79,7 @@ class UNet(nn.Module):
                 in_channels = out_channels
             
             if i > 0:
-                self.up.append(UpSample(out_channels, model_type=model_type))
+                self.up.append(UpSample(out_channels, use_conv=use_conv_for_res_change))
                 out_channels = n_channels * channels_mult[i - 1]
 
 

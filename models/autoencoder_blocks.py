@@ -135,10 +135,10 @@ class Block(nn.Module):
     
     
 class UpSample(nn.Module):
-    def __init__(self, n_channels: int, model_type: str="complex"):
+    def __init__(self, n_channels: int, use_conv: bool=True):
         super().__init__()
 
-        if model_type == "complex":
+        if use_conv:
             self.upsample = nn.ConvTranspose2d(
                 n_channels, n_channels,
                 (4, 4), (2, 2), (1, 1)
@@ -151,10 +151,10 @@ class UpSample(nn.Module):
     
 
 class DownSample(nn.Module):
-    def __init__(self, n_channels: int, model_type: str="complex"):
+    def __init__(self, n_channels: int, use_conv: bool=True):
         super().__init__()
 
-        if model_type == "complex":
+        if use_conv:
             self.downsample = nn.Conv2d(
                 n_channels, n_channels,
                 (3, 3), (2, 2), (1, 1)
