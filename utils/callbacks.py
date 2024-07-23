@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 from models.ddpm_unet import DDPMUNet
 
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 
 class SampleCallback(Callback):
@@ -94,7 +94,7 @@ class DenoiseMidwaySampleCallback(Callback):
         plt.close()
 
 
-class SampleReconstruction(Callback):
+class SampleResnetVAEReconstruction(Callback):
     def __init__(self, logger: WandbLogger, sample_input: torch.Tensor, every_n_epochs: int=100):
         super().__init__()
         self.sample_input = sample_input
@@ -120,6 +120,44 @@ class SampleReconstruction(Callback):
                 reconstructed_img = self.to_pil(self.inv_normaliser(reconstructed[i]))
                 axs[i, 0].imshow(orig_img)
                 axs[i, 1].imshow(reconstructed_img)
+            for ax in axs.ravel():
+                ax.axis(False)
+
+            self.logger.log_image(
+                key="sample_reconstruction",
+                images=[wandb.Image(fig).image]
+            )
+
+            plt.close()
+
+
+class SampleDinoDecoderReconstructionLinear(Callback):
+    def __init__(self, logger: WandbLogger, sample_input: torch.Tensor, every_n_epochs: int=100, inv_transform: Callable):
+        super().__init__()
+        self.sample_input = sample_input
+        assert len(self.sample_input.shape) == 4, "Please ensure to keep the batch dimension"
+
+        self.logger = logger
+        self.inv_transform = inv_transform
+        self.to_pil = transforms.ToPILImage()
+
+        self.every_n_epochs = every_n_epochs
+
+    def on_validation_epoch_end(self, trainer, pl_module):
+        if (trainer.current_epoch % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
+            with torch.no_grad():
+                x = self.sample_input.to(pl_module.device)
+                reconstructed = pl_module(x)
+                reconstructed = reconstructed.cpu()
+
+            n_images = x.shape[0]
+            fig, axs = plt.subplots(nrows=n_images, ncols=2, figsize=(4, 2 * n_images))
+            for i in range(x.shape[0]):
+                orig_img = self.to_pil(self.inv_transform(self.sample_input[i]))
+                reconstructed_img = self.to_pil(reconstructed[i])
+                axs[i, 0].imshow(orig_img)
+                axs[i, 1].imshow(reconstructed_img)
+                
             for ax in axs.ravel():
                 ax.axis(False)
 
