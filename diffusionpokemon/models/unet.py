@@ -1,7 +1,7 @@
 import torch
 
 from torch import nn
-from .autoencoder_blocks import (
+from diffusionpokemon.models.autoencoder_blocks import (
     AttentionBlock,
     Block,
     DownSample,

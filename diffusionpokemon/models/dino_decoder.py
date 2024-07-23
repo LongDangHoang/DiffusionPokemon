@@ -1,14 +1,16 @@
 import torch
-import torch.nn
+import torch.nn as nn
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from pytorch_lightning import LightningModule
+
+from typing import Callable
 
 
 class LinearDecoder(LightningModule):
     "A simple linear decoder that is a single linear layer to project embeddings to image using only patch embeds"
 
-    def __init__(self, model_kwargs: dict = {}, optimizer_kwargs: dict = {}):
+    def __init__(self, inv_transform: Callable, model_kwargs: dict = {}, optimizer_kwargs: dict = {}):
         super().__init__()
         
         self.save_hyperparameters()
@@ -18,7 +20,7 @@ class LinearDecoder(LightningModule):
         for param in self.backbone.parameters():
             param.requires_grad = False
 
-        self.inv_transform = make_inv_normaliser()
+        self.inv_transform = inv_transform
         
         self.decoder = nn.Sequential(
             nn.Linear(self.get_hidden_dim(model_kwargs["dinov2_backbone"]), 256),

@@ -2,21 +2,21 @@ import torch
 import torch.nn as nn
 
 from pytorch_lightning import LightningModule
-from torch.optim.lr_scheduler import OneCycleLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from .unet import UNet
+from diffusionpokemon.models.unet import UNet
 
 from tqdm import tqdm
-
+from typing import Tuple
 
 class DDPMUNet(LightningModule):
     
     def __init__(
             self,
             n_steps: int=1_000,
-            input_size: int=64,
+            input_size: Tuple[int, int, int]=(64, 64, 1024),
             unet_kwargs: dict={},
-            optimizers_kwargs: dict={},
+            optimizers_kwarg: dict={},
             is_finetune: bool=False
         ):
         super().__init__()
@@ -24,7 +24,7 @@ class DDPMUNet(LightningModule):
         self.n_steps = n_steps
         self.loss = nn.MSELoss()
         self.input_size = input_size 
-        self.optimizers_kwargs = optimizers_kwargs
+        self.optimizer_kwargs = optimizers_kwarg
         self.is_finetune = is_finetune
         
         self.register_buffer("beta", torch.linspace(1e-4, 0.02, self.n_steps, device=self.device))
@@ -44,7 +44,7 @@ class DDPMUNet(LightningModule):
                     param.requires_grad = False
             
     def training_step(self, batch, batch_index):
-        # x is x0 so (bs, 3, w, h)       
+        # x is x0 so (bs, dim, w, h)       
         x, _ = batch
         
         # we want to sample a random x_t -> x_t-1 time      
@@ -62,7 +62,7 @@ class DDPMUNet(LightningModule):
         pred_noise = self.eps_model(noised_x_t, t)
         loss = self.loss(pred_noise, true_noise_e)
         
-        self.log('train_loss', loss)
+        self.log('train_loss__step', loss)
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -76,39 +76,32 @@ class DDPMUNet(LightningModule):
         
     def on_validation_epoch_end(self):
         avg_loss = torch.stack(self.validation_loss_list).mean()
-        self.log("valid_loss_epoch", avg_loss)
+        self.log("valid_loss__epoch", avg_loss)
         self.validation_loss_list.clear()
     
     def configure_optimizers(self):
-
-        lr = self.optimizers_kwargs["lr"] if "lr" in self.optimizers_kwargs else 2e-4
+        lr = self.optimizer_kwargs["lr"] if "lr" in self.optimizer_kwargs else 2e-4
 
         optimizer = torch.optim.Adam(
             self.parameters(),
             lr=lr,
-            weight_decay=self.optimizers_kwargs["weight_decay"] if "weight_decay" in self.optimizers_kwargs else 0
+            weight_decay=self.optimizer_kwargs["weight_decay"] if "weight_decay" in self.optimizer_kwargs else 0
         )
         
         if (
-            "use_constant_lr" not in self.optimizers_kwargs 
-            or self.optimizers_kwargs["use_constant_lr"]
+            "use_constant_lr" not in self.optimizer_kwargs 
+            or self.optimizer_kwargs["use_constant_lr"]
         ):
             return optimizer
         
-        # StepLR may lead to too small lr
-        scheduler = OneCycleLR(
-            optimizer,
-            max_lr=lr,
-            epochs=self.optimizers_kwargs["num_epochs"],
-            steps_per_epoch=self.optimizers_kwargs["steps_per_epoch"]
-        )
-        
+        scheduler = ReduceLROnPlateau(optimizer)
         return {
             'optimizer': optimizer,
             'lr_scheduler': {
                 "scheduler": scheduler,
-                "frequency": 1,
-                "interval": "step"
+                "frequency": self.optimizer_kwargs["lr_sched_freq__step"],
+                "interval": "step",
+                "monitor": "train_l1__step",
             }
         }
         
@@ -130,9 +123,9 @@ class DDPMUNet(LightningModule):
         sampled = z * (torch.sqrt(var)) + mean
         return sampled
     
-    def sample(self):
+    def sample(self, batch_size: int=4):
         with torch.no_grad():
-            x = torch.randn((16, 3, self.input_size, self.input_size), device=self.device)
+            x = torch.randn((batch_size, 3, self.input_size, self.input_size), device=self.device)
             for i in tqdm(range(self.n_steps - 1, -1, -1)):
                 t = i * torch.ones((16,), device=self.device, dtype=torch.long)
                 x = self.sample_one_step(x, t)
