@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import Callback
 from matplotlib import pyplot as plt
 
-from models.ddpm_unet import DDPMUNet
+from diffusionpokemon.models.ddpm_unet import DDPMUNet
 
 from typing import Callable, List, Optional
 
