@@ -130,4 +130,4 @@ class DDPMUNet(LightningModule):
                 t = i * torch.ones((16,), device=self.device, dtype=torch.long)
                 x = self.sample_one_step(x, t)
         
-        return x.cpu()
+        return x

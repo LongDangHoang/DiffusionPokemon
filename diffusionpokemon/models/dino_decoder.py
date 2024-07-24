@@ -58,7 +58,6 @@ class LinearDecoder(LightningModule):
         return patch_tokens
     
     def forward(self, x):
-        batch_size, dim, w, h = x.shape
         patch_tokens = self.forward_patch_tokens(x)
         recon = torch.movedim(self.decoder(torch.movedim(self.resizer(patch_tokens), 1, -1)), -1, 1)
         return recon
@@ -93,3 +92,7 @@ class LinearDecoder(LightningModule):
                 "monitor": "train_l1__step",
             }
         }
+
+    def on_save_checkpoint(self, checkpoint):
+        # Do not save backbone model to save space and speed things up
+        checkpoint["state_dict"].pop("backbone")
