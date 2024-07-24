@@ -95,4 +95,9 @@ class LinearDecoder(LightningModule):
 
     def on_save_checkpoint(self, checkpoint):
         # Do not save backbone model to save space and speed things up
-        checkpoint["state_dict"].pop("backbone")
+        to_remove_keys = [
+            key for key in checkpoint["state_dict"].keys() if key.startswith("backbone")
+        ]
+
+        for key in to_remove_keys:
+            checkpoint["state_dict"].pop(key)
