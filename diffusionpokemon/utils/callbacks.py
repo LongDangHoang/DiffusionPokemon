@@ -132,7 +132,7 @@ class SampleResnetVAEReconstruction(Callback):
 
 
 class SampleDinoDecoderReconstructionLinear(Callback):
-    def __init__(self, logger: WandbLogger, sample_input: torch.Tensor, every_n_epochs: int=100, inv_transform: Callable):
+    def __init__(self, logger: WandbLogger, sample_input: torch.Tensor,  inv_transform: Callable, every_n_epochs: int=100):
         super().__init__()
         self.sample_input = sample_input
         assert len(self.sample_input.shape) == 4, "Please ensure to keep the batch dimension"
