@@ -15,9 +15,24 @@ from typing import Callable, List, Optional
 
 
 class SampleCallback(Callback):
-    def __init__(self, logger: WandbLogger, inv_normaliser: Callable, every_n_epochs: int=10, mode: Optional[str]=None, batch_size: int=4):
+    def __init__(
+        self, 
+        logger: WandbLogger, 
+        inv_normaliser: Callable, 
+        every_n_epochs: Optional[int]=None, 
+        every_n_steps: Optional[int]=100,
+        mode: Optional[str]=None, 
+        batch_size: int=4
+    ):
         super().__init__()
         self.every_n_epochs = every_n_epochs
+        self.every_n_steps = every_n_steps
+        self.freq_type = "steps"
+
+        if self.every_n_steps is None:
+            assert self.every_n_epochs is not None
+            self.freq_type == "epochs"
+        
         self.to_pil = ToPILImage(mode=mode)
         self.inv_normaliser = inv_normaliser
         self.batch_size = batch_size
@@ -25,22 +40,54 @@ class SampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
+    def log(self):
+        img_tensor = pl_module.sample(batch_size=self.batch_size).cpu()
+        self.logger.log_image(
+            key="generated_time_0",
+            images=[
+                self.to_pil(self.inv_normaliser(img_tensor[j]))
+                for j in range(img_tensor.shape[0])
+            ]
+        )
+
+    def on_train_batch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        if self.freq_type == "epochs":
+            return
+
+        if (trainer.global_step + 1) % self.every_n_steps == 0:
+            self.log()
+    
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
-        if ((trainer.current_epoch + 1) % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
-            img_tensor = pl_module.sample(batch_size=self.batch_size).cpu()
-            self.logger.log_image(
-                key="generated_time_0",
-                images=[
-                    self.to_pil(self.inv_normaliser(img_tensor[j]))
-                    for j in range(img_tensor.shape[0])
-                ]
-            )
+        if self.freq_type != "epochs":
+            return
+            
+        if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
+            self.log()
+
+    def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        self.log()
 
 
 class DenoiseMidwaySampleCallback(Callback):
-    def __init__(self, logger: WandbLogger, seed_img_transformed: torch.Tensor, noise_at_ts: List[int], inv_normaliser: Callable, every_n_epochs: int=10, pil_mode: Optional[str]=None):
+    def __init__(\
+        self, 
+        logger: WandbLogger, 
+        seed_img_transformed: torch.Tensor, 
+        noise_at_ts: List[int], 
+        inv_normaliser: Callable, 
+        every_n_epochs: Optional[int]=None,
+        every_n_steps: Optional[int]=100,
+        pil_mode: Optional[str]=None
+    ):
         super().__init__()
         self.every_n_epochs = every_n_epochs
+        self.every_n_steps = every_n_steps
+        self.freq_type = "steps"
+
+        if self.every_n_steps is None:
+            assert self.every_n_epochs is not None
+            self.freq_type == "epochs"
+            
         self.to_pil = ToPILImage(mode=pil_mode)
         self.seed_img_transformed = seed_img_transformed
         self.seed_img_shape = self.seed_img_transformed.shape
@@ -52,10 +99,7 @@ class DenoiseMidwaySampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
-        if not ( ((trainer.current_epoch + 1) % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1) ):
-            return
-        
+    def log(self):        
         original_image = self.to_pil(self.inv_normaliser(self.seed_img_transformed))
         denoised_imgs = []
         noised_imgs = []
@@ -95,6 +139,27 @@ class DenoiseMidwaySampleCallback(Callback):
         )
         
         plt.close()
+
+    def on_train_batch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        if self.freq_type == "epochs":
+            return
+
+        if (trainer.global_step + 1) % self.every_n_steps == 0:
+            self.log()
+    
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        if self.freq_type != "epochs":
+            return
+            
+        if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
+            self.log()
+
+    def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        self.log()
+
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+        if not ( ((trainer.current_epoch + 1) % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1) ):
+            return
 
 
 class SampleResnetVAEReconstruction(Callback):
