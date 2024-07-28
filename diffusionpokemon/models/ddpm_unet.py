@@ -14,7 +14,7 @@ class DDPMUNet(LightningModule):
     def __init__(
             self,
             n_steps: int=1_000,
-            input_size: Tuple[int, int, int]=(64, 64, 1024),
+            input_size: int=64,
             unet_kwargs: dict={},
             optimizers_kwarg: dict={},
             is_finetune: bool=False
