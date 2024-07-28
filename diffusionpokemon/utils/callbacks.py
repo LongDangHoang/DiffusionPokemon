@@ -15,18 +15,19 @@ from typing import Callable, List, Optional
 
 
 class SampleCallback(Callback):
-    def __init__(self, logger: WandbLogger, inv_normaliser: Callable, freq: int=10, mode: Optional[str]=None):
+    def __init__(self, logger: WandbLogger, inv_normaliser: Callable, freq: int=10, mode: Optional[str]=None, batch_size: int=4):
         super().__init__()
         self.freq = freq
         self.to_pil = ToPILImage(mode=mode)
         self.inv_normaliser = inv_normaliser
+        self.batch_size = batch_size
 
         assert logger is not None
         self.logger = logger
 
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         if ((trainer.current_epoch + 1) % self.freq == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
-            img_tensor = pl_module.sample().cpu()
+            img_tensor = pl_module.sample(batch_size=self.batch_size).cpu()
             self.logger.log_image(
                 key="generated_time_0",
                 images=[
