@@ -50,7 +50,7 @@ class SampleCallback(Callback):
             ]
         )
 
-    def on_train_batch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+    def on_train_batch_end(self, trainer, pl_module: DDPMUNet, outputs, batch, batch_idx) -> None:
         if self.freq_type == "epochs":
             return
 
@@ -69,7 +69,7 @@ class SampleCallback(Callback):
 
 
 class DenoiseMidwaySampleCallback(Callback):
-    def __init__(\
+    def __init__(
         self, 
         logger: WandbLogger, 
         seed_img_transformed: torch.Tensor, 
@@ -140,7 +140,7 @@ class DenoiseMidwaySampleCallback(Callback):
         
         plt.close()
 
-    def on_train_batch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+    def on_train_batch_end(self, trainer, pl_module: DDPMUNet, outputs, batch, batch_idx) -> None:
         if self.freq_type == "epochs":
             return
 
