@@ -72,7 +72,7 @@ class DDPMUNet(LightningModule):
         noised_x_t = self.noise_sample_at_timestep(x, t, true_noise_e)
         pred_noise = self.eps_model(noised_x_t, t)
         loss = self.loss(pred_noise, true_noise_e)
-        self.log("valid_loss__step", loss, on_step=True, on_epoch=False, logger=True)
+        self.log("valid_loss__step", loss, on_step=False, on_epoch=True, logger=True)
     
     def configure_optimizers(self):
         lr = self.optimizer_kwargs["lr"] if "lr" in self.optimizer_kwargs else 2e-4
