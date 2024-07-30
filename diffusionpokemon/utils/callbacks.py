@@ -156,11 +156,7 @@ class DenoiseMidwaySampleCallback(Callback):
 
     def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         self.log()
-
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
-        if not ( ((trainer.current_epoch + 1) % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1) ):
-            return
-
+        
 
 class SampleResnetVAEReconstruction(Callback):
     def __init__(self, logger: WandbLogger, sample_input: torch.Tensor, every_n_epochs: int=100):
