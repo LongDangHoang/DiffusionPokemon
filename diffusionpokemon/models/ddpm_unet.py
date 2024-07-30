@@ -32,7 +32,6 @@ class DDPMUNet(LightningModule):
         self.register_buffer("alpha_bar", torch.cumprod(self.alpha, dim=0))
         
         self.eps_model = UNet(**unet_kwargs)
-        self.validation_loss_list = []
 
         if (self.is_finetune):
             for layer in [
