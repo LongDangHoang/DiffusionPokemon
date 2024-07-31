@@ -61,7 +61,7 @@ class DDPMUNet(LightningModule):
         pred_noise = self.eps_model(noised_x_t, t)
         loss = self.loss(pred_noise, true_noise_e)
         
-        self.log('train_loss__step', loss, on_step=True, on_epoch=False, logger=True)
+        self.log('train_loss__step', loss, on_step=True, on_epoch=False, logger=True, prog_bar=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
