@@ -40,7 +40,7 @@ class SampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def log(self, pl_module: DDPMUNet):
+    def sample_and_log_image(self, pl_module: DDPMUNet):
         img_tensor = pl_module.sample(batch_size=self.batch_size).cpu()
         self.logger.log_image(
             key="generated_time_0",
@@ -55,17 +55,17 @@ class SampleCallback(Callback):
             return
 
         if (trainer.global_step + 1) % self.every_n_steps == 0:
-            self.log(pl_module)
+            self.sample_and_log_image(pl_module)
     
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         if self.freq_type != "epochs":
             return
             
         if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
-            self.log(pl_module)
+            self.sample_and_log_image(pl_module)
 
     def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
-        self.log(pl_module)
+        self.sample_and_log_image(pl_module)
 
 
 class DenoiseMidwaySampleCallback(Callback):
@@ -99,7 +99,7 @@ class DenoiseMidwaySampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def log(self, pl_module: DDPMUNet):        
+    def denoise_and_log_image(self, pl_module: DDPMUNet):        
         original_image = self.to_pil(self.inv_normaliser(self.seed_img_transformed))
         denoised_imgs = []
         noised_imgs = []
@@ -145,17 +145,17 @@ class DenoiseMidwaySampleCallback(Callback):
             return
 
         if (trainer.global_step + 1) % self.every_n_steps == 0:
-            self.log(pl_module)
+            self.denoise_and_log_image(pl_module)
     
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
         if self.freq_type != "epochs":
             return
             
         if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
-            self.log(pl_module)
+            self.denoise_and_log_image(pl_module)
 
     def on_train_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
-        self.log(pl_module)
+        self.denoise_and_log_image(pl_module)
         
 
 class SampleResnetVAEReconstruction(Callback):
