@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import Callback
 from matplotlib import pyplot as plt
 
-from diffusionpokemon.models.ddpm_unet import DDPMUNet
+from diffusionpokemon.models.ddpm_unet import DDPMModel
 
 from typing import Callable, List, Optional
 
@@ -23,7 +23,7 @@ class SampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         if ((trainer.current_epoch + 1) % self.freq == 0) or (trainer.current_epoch == trainer.max_epochs - 1):
             img_tensor = pl_module.sample().cpu()
             self.logger.log_image(
@@ -49,7 +49,7 @@ class DenoiseMidwaySampleCallback(Callback):
         assert logger is not None
         self.logger = logger
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         if not ( ((trainer.current_epoch + 1) % self.freq == 0) or (trainer.current_epoch == trainer.max_epochs - 1) ):
             return
         
@@ -195,7 +195,7 @@ class DenoiseMidwayLatentSampleCallback(Callback):
 
         raise NotImplementedError
 
-    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMUNet) -> None:
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         if not ( ((trainer.current_epoch + 1) % self.every_n_epochs == 0) or (trainer.current_epoch == trainer.max_epochs - 1) ):
             return
         

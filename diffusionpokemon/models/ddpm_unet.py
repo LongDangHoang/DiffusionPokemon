@@ -9,13 +9,13 @@ from diffusionpokemon.models.unet import UNet
 from tqdm import tqdm
 from typing import Tuple
 
-class DDPMUNet(LightningModule):
+class DDPMModel(LightningModule):
     
     def __init__(
             self,
             n_steps: int=1_000,
             input_size: Tuple[int, int, int]=(64, 64, 1024),
-            unet_kwargs: dict={},
+            eps_model_kwargs: dict={},
             optimizers_kwarg: dict={},
             is_finetune: bool=False
         ):
@@ -31,7 +31,7 @@ class DDPMUNet(LightningModule):
         self.register_buffer("alpha", 1 - self.beta)
         self.register_buffer("alpha_bar", torch.cumprod(self.alpha, dim=0))
         
-        self.eps_model = UNet(**unet_kwargs)
+        self.eps_model = self.get_eps_model(**eps_model_kwargs)
         self.validation_loss_list = []
 
         if (self.is_finetune):
@@ -42,6 +42,9 @@ class DDPMUNet(LightningModule):
             ]:
                 for param in layer.parameters():
                     param.requires_grad = False
+    
+    def get_eps_model(self, eps_model_kwargs):
+        raise NotImplementedError
             
     def training_step(self, batch, batch_index):
         # x is x0 so (bs, dim, w, h)       
