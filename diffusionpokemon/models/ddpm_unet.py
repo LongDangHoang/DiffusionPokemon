@@ -14,7 +14,7 @@ class DDPMModel(LightningModule):
     def __init__(
             self,
             n_steps: int=1_000,
-            input_size: Tuple[int, int, int]=(64, 64, 1024),
+            input_size: int=64,
             eps_model_kwargs: dict={},
             optimizers_kwarg: dict={},
             is_finetune: bool=False
@@ -65,7 +65,7 @@ class DDPMModel(LightningModule):
         pred_noise = self.eps_model(noised_x_t, t)
         loss = self.loss(pred_noise, true_noise_e)
         
-        self.log('train_loss__step', loss)
+        self.log('train_loss__step', loss, on_step=True, on_epoch=False, logger=True, prog_bar=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -75,12 +75,7 @@ class DDPMModel(LightningModule):
         noised_x_t = self.noise_sample_at_timestep(x, t, true_noise_e)
         pred_noise = self.eps_model(noised_x_t, t)
         loss = self.loss(pred_noise, true_noise_e)
-        self.validation_loss_list.append(loss)
-        
-    def on_validation_epoch_end(self):
-        avg_loss = torch.stack(self.validation_loss_list).mean()
-        self.log("valid_loss__epoch", avg_loss)
-        self.validation_loss_list.clear()
+        self.log("valid_loss__epoch", loss, on_step=False, on_epoch=True, logger=True, prog_bar=True)
     
     def configure_optimizers(self):
         lr = self.optimizer_kwargs["lr"] if "lr" in self.optimizer_kwargs else 2e-4
@@ -104,7 +99,7 @@ class DDPMModel(LightningModule):
                 "scheduler": scheduler,
                 "frequency": self.optimizer_kwargs["lr_sched_freq__step"],
                 "interval": "step",
-                "monitor": "train_l1__step",
+                "monitor": "train_loss__step",
             }
         }
         
@@ -130,7 +125,7 @@ class DDPMModel(LightningModule):
         with torch.no_grad():
             x = torch.randn((batch_size, 3, self.input_size, self.input_size), device=self.device)
             for i in tqdm(range(self.n_steps - 1, -1, -1)):
-                t = i * torch.ones((16,), device=self.device, dtype=torch.long)
+                t = i * torch.ones((batch_size,), device=self.device, dtype=torch.long)
                 x = self.sample_one_step(x, t)
         
         return x
