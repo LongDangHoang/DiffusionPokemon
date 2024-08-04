@@ -35,15 +35,12 @@ class DDPMModel(LightningModule):
         self.validation_loss_list = []
 
         if (self.is_finetune):
-            for layer in [
-                self.eps_model.image_proj_in,
-                self.eps_model.time_embed,
-                self.eps_model.down
-            ]:
-                for param in layer.parameters():
-                    param.requires_grad = False
-    
+            self.set_eps_model_finetune()
+   
     def get_eps_model(self, eps_model_kwargs):
+        raise NotImplementedError
+    
+    def set_eps_model_finetune():
         raise NotImplementedError
             
     def training_step(self, batch, batch_index):
@@ -129,3 +126,20 @@ class DDPMModel(LightningModule):
                 x = self.sample_one_step(x, t)
         
         return x
+
+
+class DDPMUNet(DDPMModel):
+
+    def get_eps_model(self, eps_model_kwargs):
+        return UNet(**eps_model_kwargs)
+    
+    def set_eps_model_finetune(self):
+        self.eps_model: UNet
+        for layer in [
+            self.eps_model.image_proj_in,
+            self.eps_model.time_embed,
+            self.eps_model.down
+        ]:
+            for param in layer.parameters():
+                param.requires_grad = False
+    

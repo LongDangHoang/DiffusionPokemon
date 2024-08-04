@@ -27,6 +27,7 @@ class SampleCallback(Callback):
         super().__init__()
         self.every_n_epochs = every_n_epochs
         self.every_n_steps = every_n_steps
+        self.last_log_at = None
         self.freq_type = "steps"
 
         if self.every_n_steps is None:
@@ -54,15 +55,23 @@ class SampleCallback(Callback):
         if self.freq_type == "epochs":
             return
 
-        if (trainer.global_step + 1) % self.every_n_steps == 0:
+        if (
+            ((trainer.global_step + 1) % self.every_n_steps == 0)
+            and (self.last_log_at != trainer.global_step)
+        ):
             self.sample_and_log_image(pl_module)
+            self.last_log_at = trainer.global_step
     
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         if self.freq_type != "epochs":
             return
             
-        if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
+        if (
+            ((trainer.current_epoch + 1) % self.every_n_epochs == 0)
+            and (self.last_log_at != trainer.current_epoch)
+        ):
             self.sample_and_log_image(pl_module)
+            self.last_log_at = trainer.current_epoch
 
     def on_train_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         self.sample_and_log_image(pl_module)
@@ -83,6 +92,7 @@ class DenoiseMidwaySampleCallback(Callback):
         self.every_n_epochs = every_n_epochs
         self.every_n_steps = every_n_steps
         self.freq_type = "steps"
+        self.last_log_at = None
 
         if self.every_n_steps is None:
             assert self.every_n_epochs is not None
@@ -144,15 +154,23 @@ class DenoiseMidwaySampleCallback(Callback):
         if self.freq_type == "epochs":
             return
 
-        if (trainer.global_step + 1) % self.every_n_steps == 0:
+        if (
+            ((trainer.global_step + 1) % self.every_n_steps == 0)
+            and (self.last_log_at != trainer.global_step)
+        ):
             self.denoise_and_log_image(pl_module)
+            self.last_log_at = trainer.global_step
     
     def on_train_epoch_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         if self.freq_type != "epochs":
             return
             
-        if (trainer.current_epoch + 1) % self.every_n_epochs == 0:
+        if (
+            ((trainer.current_epoch + 1) % self.every_n_epochs == 0)
+            and (self.last_log_at != trainer.current_epoch)
+        ):
             self.denoise_and_log_image(pl_module)
+            self.last_log_at = trainer.current_epoch
 
     def on_train_end(self, trainer: Trainer, pl_module: DDPMModel) -> None:
         self.denoise_and_log_image(pl_module)
