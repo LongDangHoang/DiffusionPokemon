@@ -1,6 +1,18 @@
 [project]
 name = "diffusionpokemon"
 version = "0.0.1"
+dependencies = [
+    "boto3>=1.37.19",
+    "kaggle>=1.7.4.2",
+    "matplotlib>=3.10.1",
+    "protobuf>=5.29.4",
+    "pytorch-lightning>=2.5.1",
+    "torch==2.2.2",
+    "torchvision>=0.17.2",
+    "tqdm>=4.67.1",
+    "wandb>=0.19.8",
+]
+requires-python=">=3.12"
 
 [tool.setuptools]
 packages = ["diffusionpokemon"]
