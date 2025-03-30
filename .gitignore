@@ -15,3 +15,6 @@ notebooks/diffusion-pokemon-lightning
 
 .env
 uv.lock
+
+kaggle_scripts
+dataset
