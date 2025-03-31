@@ -89,7 +89,20 @@ class DDPMModel(LightningModule):
         ):
             return optimizer
         
-        scheduler = ReduceLROnPlateau(optimizer)
+        match self.optimizer_kwargs["lr_scheduler__class"].lower():
+            case "reducelronplateau":
+                scheduler_class = ReduceLROnPlateau
+            case "steplr":
+                scheduler_class = torch.optim.lr_scheduler.StepLR
+            case "cosineannealinglr":
+                scheduler_class = torch.optim.lr_scheduler.CosineAnnealingLR
+        
+        scheduler_kwargs = (
+            self.optimizer_kwargs["lr_scheduler__kwargs"]
+            if "lr_scheduler__kwargs" in self.optimizer_kwargs
+            else {}
+        )
+        scheduler = scheduler_class(optimizer, **scheduler_kwargs)
         return {
             'optimizer': optimizer,
             'lr_scheduler': {
