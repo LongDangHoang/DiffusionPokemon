@@ -22,7 +22,8 @@ class SampleCallback(Callback):
         every_n_epochs: Optional[int]=None, 
         every_n_steps: Optional[int]=100,
         mode: Optional[str]=None, 
-        batch_size: int=4
+        batch_size: int=4,
+        input_channels: int=3,
     ):
         super().__init__()
         self.every_n_epochs = every_n_epochs
@@ -37,12 +38,13 @@ class SampleCallback(Callback):
         self.to_pil = ToPILImage(mode=mode)
         self.inv_normaliser = inv_normaliser
         self.batch_size = batch_size
+        self.input_channels = input_channels
 
         assert logger is not None
         self.logger = logger
 
     def sample_and_log_image(self, pl_module: DDPMModel):
-        img_tensor = pl_module.sample(batch_size=self.batch_size).cpu()
+        img_tensor = pl_module.sample(batch_size=self.batch_size, input_channels=self.input_channels).cpu()
         self.logger.log_image(
             key="generated_time_0",
             images=[

@@ -131,9 +131,9 @@ class DDPMModel(LightningModule):
         sampled = z * (torch.sqrt(var)) + mean
         return sampled
     
-    def sample(self, batch_size: int=4):
+    def sample(self, batch_size: int=4, input_channels: int=3):
         with torch.no_grad():
-            x = torch.randn((batch_size, 3, self.input_size, self.input_size), device=self.device)
+            x = torch.randn((batch_size, input_channels, self.input_size, self.input_size), device=self.device)
             for i in tqdm(range(self.n_steps - 1, -1, -1)):
                 t = i * torch.ones((batch_size,), device=self.device, dtype=torch.long)
                 x = self.sample_one_step(x, t)
