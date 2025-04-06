@@ -10,11 +10,10 @@ data/
 checkpoints/
 wandb/
 
-# checkpoint dir
 notebooks/diffusion-pokemon-lightning
 
 .env
-uv.lock
+.ssh_env
+config.json
 
-kaggle_scripts
-dataset
+*.lock
