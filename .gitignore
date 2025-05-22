@@ -17,3 +17,5 @@ notebooks/diffusion-pokemon-lightning
 config.json
 
 *.lock
+
+.ipynb_checkpoints

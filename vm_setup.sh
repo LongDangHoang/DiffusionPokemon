@@ -29,3 +29,9 @@ cd $HOME/data/kaggle /pokemon-image-dataset
 unzip pokemon-image-dataset.zip
 rm -f pokemon-image-dataset.zip 
 cd $HOME
+
+# install everything
+uv pip install --requirement pyproject.toml
+
+# install jupyter kernel
+python -m ipykernel install --user --name=uv-env --display-name "Python (uv-env)"
