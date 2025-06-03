@@ -46,3 +46,7 @@ uv run python -m ipykernel install --user --name=uv-env --display-name "Python (
 # run jupyter
 # uv run jupyter notebook password
 # uv run jupyter lab
+
+# git stuff
+# git config --global user.email "hoanglongdang2001@gmail.com"
+# git config --global user.name "Long Dang"
