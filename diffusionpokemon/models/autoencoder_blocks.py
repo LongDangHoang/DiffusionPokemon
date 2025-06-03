@@ -61,14 +61,12 @@ class ResidualBlock(nn.Module):
             self.shortcut = nn.Identity()
     
     def forward(self, x: torch.Tensor, t: Optional[torch.Tensor]=None):
-        normed_x = self.norm1(x.to(memory_format=torch.contiguous_format)).to(memory_format=torch.channels_last)
-        h = self.conv1(self.act(normed_x))
+        h = self.conv1(self.act(self.norm1(x)))
         
         if t is not None and hasattr(self, "time_emb"):
             h += self.time_emb(self.act(t))[:, :, None, None]
             
-        normed_h = self.norm2(h.to(memory_format=torch.contiguous_format)).to(memory_format=torch.channels_last)
-        h = self.conv2(self.dropout(self.act(normed_h)))
+        h = self.conv2(self.dropout(self.act(self.norm2(h))))
         return h + self.shortcut(x)
     
 
@@ -89,19 +87,18 @@ class AttentionBlock(nn.Module):
         
     def forward(self, x: torch.Tensor, t: Optional[torch.Tensor]=None):
         batch_size, n_channels, height, width = x.shape
-        x = x.to(memory_format=torch.contiguous_format)
-        x = self.group_norm(x).to(memory_format=torch.channels_last)
-        x = x.view(batch_size, n_channels, -1).permute(0, 2, 1)
+        x = self.group_norm(x)
+        x = x.reshape(batch_size, n_channels, -1).permute(0, 2, 1)
         
-        qkv = self.project(x).view(batch_size, -1, self.n_heads, self.d_k * 3)
+        qkv = self.project(x).reshape(batch_size, -1, self.n_heads, self.d_k * 3)
         q, k, v = torch.chunk(qkv, 3, dim=-1)
         attn: torch.Tensor = torch.einsum('bihk,bjhk->bijh', q, k) * self.d_k ** 0.5
         attn = attn.softmax(dim=2)
         h: torch.Tensor = torch.einsum('bjhk,bijh->bihk', v, attn)
-        h = h.view(batch_size, -1, self.n_heads * self.d_k)
+        h = h.reshape(batch_size, -1, self.n_heads * self.d_k)
         h = self.act(self.out(h))
         h += x
-        h = h.permute(0, 2, 1).view(batch_size, n_channels, height, width)
+        h = h.permute(0, 2, 1).reshape(batch_size, n_channels, height, width)
         return h
     
     

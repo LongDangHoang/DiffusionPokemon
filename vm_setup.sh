@@ -30,8 +30,19 @@ unzip pokemon-image-dataset.zip
 rm -f pokemon-image-dataset.zip 
 cd $HOME
 
+# set a new virtual env to local
+# uv venv
+# export VIRTUAL_ENV=./.venv
+
+# check if uv is using the right thing
+# uv run python -c "import sys; print(sys.executable)"
+
 # install everything
-uv pip install --requirement pyproject.toml
+# uv pip install --requirement pyproject.toml
 
 # install jupyter kernel
-python -m ipykernel install --user --name=uv-env --display-name "Python (uv-env)"
+uv run python -m ipykernel install --user --name=uv-env --display-name "Python (uv-env)"
+
+# run jupyter
+# uv run jupyter notebook password
+# uv run jupyter lab

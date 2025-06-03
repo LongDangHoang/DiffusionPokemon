@@ -2,19 +2,19 @@
 name = "diffusionpokemon"
 version = "0.0.1"
 dependencies = [
-    "boto3>=1.37.19",
-    "kaggle>=1.7.4.2",
-    "matplotlib>=3.10.1",
-    "protobuf>=5.29.4",
-    "pytorch-lightning>=2.5.1",
-    "torch==2.2.2",
-    "torchvision>=0.17.2",
-    "tqdm>=4.67.1",
-    "wandb>=0.19.8",
-    "numpy==1.26.4",
+    "boto3",
+    "kaggle",
+    "matplotlib",
+    "protobuf",
+    "pytorch-lightning",
+    "torch==2.6.0",
+    "torchvision",
+    "tqdm,
+    "wandb",
+    "numpy",
     "ipykernel",
     "python-dotenv",
-    "s3fs",
+    "s3fs==2025.5.1",
 ]
 requires-python=">=3.12, <3.13"
 
@@ -23,10 +23,10 @@ packages = ["diffusionpokemon"]
 
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cu121" },
+    { index = "pytorch-cu126" },
 ]
 
 [[tool.uv.index]]
-name = "pytorch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
 explicit = true
