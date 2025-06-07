@@ -85,7 +85,7 @@ class AttentionBlock(nn.Module):
         batch_size, n_channels, height, width = x.shape
         x = self.group_norm(x)
         x = x.flatten(2).transpose(1, 2)
-        h: torch.Tensor = self.mha(x, x, x, need_weights=False)
+        h, _ = self.mha(x, x, x, need_weights=False)
         h = self.act(h) + x
         h = h.transpose(1, 2).reshape(batch_size, n_channels, height, width)
         return h
