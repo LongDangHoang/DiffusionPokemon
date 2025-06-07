@@ -4,10 +4,6 @@ import math
 
 from typing import Optional
 
-class Swish(nn.Module):
-    def forward(self, x):
-        return x * torch.sigmoid(x)
-
     
 class TimeEmbedding(nn.Module):
     def __init__(self, n_channels: int):
@@ -16,7 +12,7 @@ class TimeEmbedding(nn.Module):
         self.n_channels = n_channels
         
         self.lin1 = nn.Linear(self.n_channels // 4, self.n_channels)
-        self.act = Swish()
+        self.act = nn.SiLU()
         self.lin2 = nn.Linear(self.n_channels, self.n_channels)
 
     def forward(self, t: torch.Tensor):
@@ -45,7 +41,7 @@ class ResidualBlock(nn.Module):
         dropout: float=0.1,
     ):
         super().__init__()
-        self.act = Swish()
+        self.act = nn.SiLU()
         self.norm1 = nn.GroupNorm(n_groups, in_channels)
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1))
         self.norm2 = nn.GroupNorm(n_groups, out_channels)
@@ -71,34 +67,27 @@ class ResidualBlock(nn.Module):
     
 
 class AttentionBlock(nn.Module):
-    def __init__(self, n_channels: int, n_heads: int=1, d_k: int=None, n_groups: int=32):
+    def __init__(self, n_channels: int, n_heads: int=32, n_groups: int=32):
         super().__init__()
-        
-        if not d_k:
-            d_k = n_channels
-        
-        self.d_k = d_k
+
         self.n_channels = n_channels
         self.n_heads = n_heads
-        self.project = nn.Linear(n_channels, n_heads * d_k * 3)
+
+        self.act = nn.SiLU()
         self.group_norm = nn.GroupNorm(n_groups, n_channels)
-        self.out = nn.Linear(n_heads * d_k, n_channels)
-        self.act = Swish()
+        self.mha = nn.MultiheadAttention(
+            embed_dim=n_channels,
+            num_heads=n_heads,
+            batch_first=True
+        )
         
     def forward(self, x: torch.Tensor, t: Optional[torch.Tensor]=None):
         batch_size, n_channels, height, width = x.shape
         x = self.group_norm(x)
-        x = x.reshape(batch_size, n_channels, -1).permute(0, 2, 1)
-        
-        qkv = self.project(x).reshape(batch_size, -1, self.n_heads, self.d_k * 3)
-        q, k, v = torch.chunk(qkv, 3, dim=-1)
-        attn: torch.Tensor = torch.einsum('bihk,bjhk->bijh', q, k) * self.d_k ** 0.5
-        attn = attn.softmax(dim=2)
-        h: torch.Tensor = torch.einsum('bjhk,bijh->bihk', v, attn)
-        h = h.reshape(batch_size, -1, self.n_heads * self.d_k)
-        h = self.act(self.out(h))
-        h += x
-        h = h.permute(0, 2, 1).reshape(batch_size, n_channels, height, width)
+        x = x.flatten(2).transpose(1, 2)
+        h: torch.Tensor = self.mha(x, x, x, need_weights=False)
+        h = self.act(h) + x
+        h = h.transpose(1, 2).reshape(batch_size, n_channels, height, width)
         return h
     
     

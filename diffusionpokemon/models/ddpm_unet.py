@@ -32,7 +32,6 @@ class DDPMModel(LightningModule):
         self.register_buffer("alpha_bar", torch.cumprod(self.alpha, dim=0))
         
         self.eps_model = self.get_eps_model(eps_model_kwargs)
-        self.validation_loss_list = []
 
         if (self.is_finetune):
             self.set_eps_model_finetune()
