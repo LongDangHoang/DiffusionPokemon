@@ -6,7 +6,6 @@ from diffusionpokemon.models.autoencoder_blocks import (
     Block,
     DownSample,
     ResidualBlock,
-    Swish,
     TimeEmbedding,
     UpSample,
 )
@@ -39,7 +38,7 @@ class UNet(nn.Module):
         self.image_proj_out = nn.Conv2d(n_channels, input_channels, kernel_size=(3, 3), padding=(1, 1))
         self.norm_proj_out = nn.GroupNorm(num_groups=32, num_channels=n_channels)
         self.time_embed = TimeEmbedding(time_channels)
-        self.act = Swish()
+        self.act = nn.SiLU()
         
         self.down = nn.ModuleList()
         self.up = nn.ModuleList()
