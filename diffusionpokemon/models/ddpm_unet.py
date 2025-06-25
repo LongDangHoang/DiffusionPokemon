@@ -20,6 +20,7 @@ class DDPMModel(LightningModule):
             is_finetune: bool=False
         ):
         super().__init__()
+        self.save_hyperparameters()
     
         self.n_steps = n_steps
         self.loss = nn.MSELoss()
