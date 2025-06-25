@@ -15,6 +15,7 @@ dependencies = [
     "ipykernel",
     "python-dotenv",
     "s3fs==2025.5.1",
+    "scikit-learn"
 ]
 requires-python=">=3.12, <3.13"
 
