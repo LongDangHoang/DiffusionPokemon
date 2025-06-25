@@ -24,7 +24,7 @@ EOF
 # populate dataset
 cd $HOME/DiffiusionPokemonProject
 mkdir $HOME/data/kaggle/pokemon-image-dataset -p
-uv run kaggle datasets download -d hlrhegemony/pokemon-image-dataset --path $HOME/data/kaggle/pokemon-image-dataset
+uv run kaggle datasets download -d danghoanglong/pokemon-images-and-sprites --path $HOME/data/kaggle/pokemon-image-dataset
 cd $HOME/data/kaggle /pokemon-image-dataset
 unzip pokemon-image-dataset.zip
 rm -f pokemon-image-dataset.zip 

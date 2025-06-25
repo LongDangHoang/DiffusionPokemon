@@ -1,7 +1,7 @@
 import os
 
+from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.io import read_image
 from torchvision.datasets.folder import has_file_allowed_extension, IMG_EXTENSIONS
 from sklearn.model_selection import train_test_split
 
@@ -13,8 +13,11 @@ def find_all_images(root_dir):
                 all_images.append(os.path.join(root, fname))
     return all_images
 
-
 class SimpleImageDataset(Dataset):
+    """
+    Will read all images available as RGB
+    """
+
     def __init__(self, image_paths, transform=None):
         self.image_paths = image_paths
         self.transform = transform
@@ -24,7 +27,13 @@ class SimpleImageDataset(Dataset):
 
     def __getitem__(self, idx):
         path = self.image_paths[idx]
-        image = read_image(path)
+        image = Image.open(path).convert("RGBA")
+
+        # Blend transparent pixels over a white background
+        background = Image.new("RGB", image.size, (255, 255, 255))
+        background.paste(image, mask=image.getchannel("A"))  # Use alpha channel as mask
+        image = background  # Now image is RGB
+        
         if self.transform:
             image = self.transform(image)
         return image, path
